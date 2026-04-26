@@ -35,6 +35,7 @@ final class KeyboardViewController: UIInputViewController {
     private var dynamicUtilityButtons: [KeyboardButton] = []
     private var keyboardMode: KeyboardMode = .letters
     private var shiftState: ShiftState = .off
+    private var keyboardHeightConstraint: NSLayoutConstraint?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -59,6 +60,8 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func setupView() {
+        view.isOpaque = true
+
         rootStack.axis = .vertical
         rootStack.spacing = 8
         rootStack.translatesAutoresizingMaskIntoConstraints = false
@@ -68,8 +71,13 @@ final class KeyboardViewController: UIInputViewController {
             rootStack.topAnchor.constraint(equalTo: view.topAnchor, constant: 8),
             rootStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),
             rootStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -6),
-            rootStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -8)
+            rootStack.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+
+        let heightConstraint = view.heightAnchor.constraint(equalToConstant: 258)
+        heightConstraint.priority = .defaultHigh
+        heightConstraint.isActive = true
+        keyboardHeightConstraint = heightConstraint
 
         applyTheme()
     }
