@@ -1,6 +1,17 @@
 import UIKit
 
 final class KeyboardViewController: UIInputViewController {
+    private struct Theme {
+        let keyboardBackground: UIColor
+        let letterKeyBackground: UIColor
+        let letterKeyText: UIColor
+        let utilityKeyBackground: UIColor
+        let utilityKeyText: UIColor
+        let actionKeyBackground: UIColor
+        let actionKeyText: UIColor
+        let shadowColor: UIColor
+    }
+
     private enum KeyboardMode {
         case letters
         case numbers
@@ -21,13 +32,25 @@ final class KeyboardViewController: UIInputViewController {
     private let spaceButton = KeyboardButton(title: "пробел", backgroundColor: .white)
     private let returnButton = KeyboardButton(title: "Ввод", backgroundColor: .systemBlue, titleColor: .white)
     private var keyButtons: [KeyboardButton] = []
+    private var dynamicUtilityButtons: [KeyboardButton] = []
     private var keyboardMode: KeyboardMode = .letters
     private var shiftState: ShiftState = .off
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
+        setupControlActions()
         rebuildLetterKeys()
+    }
+
+    override func textDidChange(_ textInput: UITextInput?) {
+        super.textDidChange(textInput)
+        applyTheme()
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        applyTheme()
     }
 
     override func viewWillLayoutSubviews() {
@@ -36,8 +59,6 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func setupView() {
-        view.backgroundColor = UIColor(red: 0.84, green: 0.87, blue: 0.92, alpha: 1.0)
-
         rootStack.axis = .vertical
         rootStack.spacing = 8
         rootStack.translatesAutoresizingMaskIntoConstraints = false
@@ -49,6 +70,8 @@ final class KeyboardViewController: UIInputViewController {
             rootStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -6),
             rootStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -8)
         ])
+
+        applyTheme()
     }
 
     private func rebuildLetterKeys() {
@@ -57,6 +80,7 @@ final class KeyboardViewController: UIInputViewController {
             row.removeFromSuperview()
         }
         keyButtons.removeAll()
+        dynamicUtilityButtons.removeAll()
 
         switch keyboardMode {
         case .letters:
@@ -73,7 +97,14 @@ final class KeyboardViewController: UIInputViewController {
             rootStack.addArrangedSubview(makeSymbolThirdRow(keys: KeyboardLayout.symbolRows[2], leadingTitle: "123", trailingTitle: "⌫"))
         }
 
-        let bottomRow = makeBottomRow()
+        rootStack.addArrangedSubview(makeBottomRow())
+        updateModeButtonTitle()
+        updateReturnKeyTitle()
+        updateShiftAppearance()
+        applyTheme()
+    }
+
+    private func setupControlActions() {
         globeButton.addTarget(self, action: #selector(handleInputModeList(from:with:)), for: .allTouchEvents)
         globeButton.addAction(UIAction { [weak self] _ in
             self?.advanceToNextInputMode()
@@ -93,11 +124,6 @@ final class KeyboardViewController: UIInputViewController {
         backspaceButton.addAction(UIAction { [weak self] _ in
             self?.textDocumentProxy.deleteBackward()
         }, for: .touchUpInside)
-
-        rootStack.addArrangedSubview(bottomRow)
-        updateModeButtonTitle()
-        updateReturnKeyTitle()
-        updateShiftAppearance()
     }
 
     private func makeRowStack(distribution: UIStackView.Distribution = .fillEqually) -> UIStackView {
@@ -185,6 +211,7 @@ final class KeyboardViewController: UIInputViewController {
             self.keyboardMode = leadingTitle == "#+=" ? .symbols : .numbers
             self.rebuildLetterKeys()
         }, for: .touchUpInside)
+        dynamicUtilityButtons.append(leadingButton)
 
         let lettersStack = makeRowStack()
         lettersStack.translatesAutoresizingMaskIntoConstraints = false
@@ -197,6 +224,7 @@ final class KeyboardViewController: UIInputViewController {
         trailingButton.addAction(UIAction { [weak self] _ in
             self?.textDocumentProxy.deleteBackward()
         }, for: .touchUpInside)
+        dynamicUtilityButtons.append(trailingButton)
 
         outerStack.addArrangedSubview(leadingButton)
         outerStack.addArrangedSubview(lettersStack)
@@ -214,6 +242,7 @@ final class KeyboardViewController: UIInputViewController {
                 self?.keyboardMode = .letters
                 self?.rebuildLetterKeys()
             }, for: .touchUpInside)
+            dynamicUtilityButtons.append(leadingButton)
         }
 
         if needsInputModeSwitchKey {
@@ -290,18 +319,13 @@ final class KeyboardViewController: UIInputViewController {
     private func updateShiftAppearance() {
         switch shiftState {
         case .off:
-            shiftButton.backgroundColor = .systemGray5
-            shiftButton.setTitleColor(.label, for: .normal)
             shiftButton.setTitle("⇧", for: .normal)
         case .on:
-            shiftButton.backgroundColor = .systemBlue
-            shiftButton.setTitleColor(.white, for: .normal)
             shiftButton.setTitle("⇧", for: .normal)
         case .capsLock:
-            shiftButton.backgroundColor = .systemBlue
-            shiftButton.setTitleColor(.white, for: .normal)
             shiftButton.setTitle("⇪", for: .normal)
         }
+        applyTheme()
     }
 
     private var isLetterUppercase: Bool {
@@ -352,5 +376,98 @@ final class KeyboardViewController: UIInputViewController {
             title = "Ввод"
         }
         returnButton.setTitle(title, for: .normal)
+    }
+
+    private var currentTheme: Theme {
+        let isDark: Bool
+        switch textDocumentProxy.keyboardAppearance {
+        case .dark:
+            isDark = true
+        case .light:
+            isDark = false
+        default:
+            isDark = traitCollection.userInterfaceStyle == .dark
+        }
+
+        if isDark {
+            return Theme(
+                keyboardBackground: UIColor(red: 0.73, green: 0.75, blue: 0.80, alpha: 1.0),
+                letterKeyBackground: UIColor(red: 0.97, green: 0.97, blue: 0.98, alpha: 1.0),
+                letterKeyText: UIColor(red: 0.09, green: 0.10, blue: 0.12, alpha: 1.0),
+                utilityKeyBackground: UIColor(red: 0.34, green: 0.35, blue: 0.39, alpha: 1.0),
+                utilityKeyText: UIColor.white,
+                actionKeyBackground: UIColor(red: 0.21, green: 0.52, blue: 0.96, alpha: 1.0),
+                actionKeyText: UIColor.white,
+                shadowColor: UIColor.black.withAlphaComponent(0.18)
+            )
+        }
+
+        return Theme(
+            keyboardBackground: UIColor(red: 0.84, green: 0.87, blue: 0.92, alpha: 1.0),
+            letterKeyBackground: UIColor.white,
+            letterKeyText: UIColor(red: 0.08, green: 0.09, blue: 0.11, alpha: 1.0),
+            utilityKeyBackground: UIColor(red: 0.67, green: 0.70, blue: 0.75, alpha: 1.0),
+            utilityKeyText: UIColor(red: 0.08, green: 0.09, blue: 0.11, alpha: 1.0),
+            actionKeyBackground: UIColor(red: 0.21, green: 0.52, blue: 0.96, alpha: 1.0),
+            actionKeyText: UIColor.white,
+            shadowColor: UIColor.black.withAlphaComponent(0.12)
+        )
+    }
+
+    private func applyTheme() {
+        let theme = currentTheme
+        view.backgroundColor = theme.keyboardBackground
+
+        for button in keyButtons {
+            button.applyColors(
+                backgroundColor: theme.letterKeyBackground,
+                titleColor: theme.letterKeyText,
+                shadowColor: theme.shadowColor
+            )
+        }
+
+        let utilityButtons = [modeButton, globeButton, backspaceButton] + dynamicUtilityButtons
+        for button in utilityButtons {
+            button.applyColors(
+                backgroundColor: theme.utilityKeyBackground,
+                titleColor: theme.utilityKeyText,
+                shadowColor: theme.shadowColor
+            )
+        }
+
+        if keyboardMode == .letters {
+            switch shiftState {
+            case .off:
+                shiftButton.applyColors(
+                    backgroundColor: theme.utilityKeyBackground,
+                    titleColor: theme.utilityKeyText,
+                    shadowColor: theme.shadowColor
+                )
+            case .on, .capsLock:
+                shiftButton.applyColors(
+                    backgroundColor: theme.actionKeyBackground,
+                    titleColor: theme.actionKeyText,
+                    shadowColor: theme.shadowColor
+                )
+            }
+        } else {
+            shiftButton.applyColors(
+                backgroundColor: theme.utilityKeyBackground,
+                titleColor: theme.utilityKeyText,
+                shadowColor: theme.shadowColor
+            )
+        }
+
+        returnButton.applyColors(
+            backgroundColor: theme.actionKeyBackground,
+            titleColor: theme.actionKeyText,
+            shadowColor: theme.shadowColor
+        )
+
+        spaceButton.applyColors(
+            backgroundColor: theme.letterKeyBackground,
+            titleColor: theme.letterKeyText,
+            shadowColor: theme.shadowColor
+        )
     }
 }

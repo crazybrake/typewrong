@@ -24,6 +24,12 @@ final class KeyboardButton: UIButton {
         heightAnchor.constraint(equalToConstant: 46).isActive = true
     }
 
+    func applyColors(backgroundColor: UIColor, titleColor: UIColor, shadowColor: UIColor) {
+        self.backgroundColor = backgroundColor
+        setTitleColor(titleColor, for: .normal)
+        layer.shadowColor = shadowColor.cgColor
+    }
+
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
