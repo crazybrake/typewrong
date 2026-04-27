@@ -36,6 +36,7 @@ final class KeyboardViewController: UIInputViewController {
     private var keyboardMode: KeyboardMode = .letters
     private var shiftState: ShiftState = .off
     private var keyboardHeightConstraint: NSLayoutConstraint?
+    private let preferredKeyboardHeight: CGFloat = 258
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -61,6 +62,7 @@ final class KeyboardViewController: UIInputViewController {
 
     private func setupView() {
         view.isOpaque = true
+        inputView?.isOpaque = true
 
         rootStack.axis = .vertical
         rootStack.spacing = 8
@@ -74,7 +76,7 @@ final class KeyboardViewController: UIInputViewController {
             rootStack.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
 
-        let heightConstraint = view.heightAnchor.constraint(equalToConstant: 258)
+        let heightConstraint = (inputView ?? view).heightAnchor.constraint(equalToConstant: preferredKeyboardHeight)
         heightConstraint.priority = .defaultHigh
         heightConstraint.isActive = true
         keyboardHeightConstraint = heightConstraint
@@ -399,32 +401,33 @@ final class KeyboardViewController: UIInputViewController {
 
         if isDark {
             return Theme(
-                keyboardBackground: UIColor(red: 0.73, green: 0.75, blue: 0.80, alpha: 1.0),
-                letterKeyBackground: UIColor(red: 0.97, green: 0.97, blue: 0.98, alpha: 1.0),
-                letterKeyText: UIColor(red: 0.09, green: 0.10, blue: 0.12, alpha: 1.0),
-                utilityKeyBackground: UIColor(red: 0.34, green: 0.35, blue: 0.39, alpha: 1.0),
+                keyboardBackground: UIColor(red: 0.13, green: 0.19, blue: 0.24, alpha: 1.0),
+                letterKeyBackground: UIColor(red: 0.31, green: 0.38, blue: 0.41, alpha: 1.0),
+                letterKeyText: UIColor.white,
+                utilityKeyBackground: UIColor(red: 0.27, green: 0.33, blue: 0.37, alpha: 1.0),
                 utilityKeyText: UIColor.white,
                 actionKeyBackground: UIColor(red: 0.21, green: 0.52, blue: 0.96, alpha: 1.0),
                 actionKeyText: UIColor.white,
-                shadowColor: UIColor.black.withAlphaComponent(0.18)
+                shadowColor: UIColor.clear
             )
         }
 
         return Theme(
-            keyboardBackground: UIColor(red: 0.84, green: 0.87, blue: 0.92, alpha: 1.0),
+            keyboardBackground: UIColor(red: 0.84, green: 0.85, blue: 0.88, alpha: 1.0),
             letterKeyBackground: UIColor.white,
             letterKeyText: UIColor(red: 0.08, green: 0.09, blue: 0.11, alpha: 1.0),
-            utilityKeyBackground: UIColor(red: 0.67, green: 0.70, blue: 0.75, alpha: 1.0),
+            utilityKeyBackground: UIColor.white,
             utilityKeyText: UIColor(red: 0.08, green: 0.09, blue: 0.11, alpha: 1.0),
             actionKeyBackground: UIColor(red: 0.21, green: 0.52, blue: 0.96, alpha: 1.0),
             actionKeyText: UIColor.white,
-            shadowColor: UIColor.black.withAlphaComponent(0.12)
+            shadowColor: UIColor.black.withAlphaComponent(0.08)
         )
     }
 
     private func applyTheme() {
         let theme = currentTheme
         view.backgroundColor = theme.keyboardBackground
+        inputView?.backgroundColor = theme.keyboardBackground
 
         for button in keyButtons {
             button.applyColors(
@@ -466,9 +469,17 @@ final class KeyboardViewController: UIInputViewController {
             )
         }
 
+        let isProminentReturnKey: Bool
+        switch textDocumentProxy.returnKeyType {
+        case .search, .go, .send:
+            isProminentReturnKey = true
+        default:
+            isProminentReturnKey = false
+        }
+
         returnButton.applyColors(
-            backgroundColor: theme.actionKeyBackground,
-            titleColor: theme.actionKeyText,
+            backgroundColor: isProminentReturnKey ? theme.actionKeyBackground : theme.utilityKeyBackground,
+            titleColor: isProminentReturnKey ? theme.actionKeyText : theme.utilityKeyText,
             shadowColor: theme.shadowColor
         )
 

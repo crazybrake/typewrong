@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: make generate
+
+      - name: Build for testing
+        run: |
+          xcodebuild \
+            -project TypeWrong.xcodeproj \
+            -scheme TypeWrongApp \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            build-for-testing
+
+      - name: Resolve simulator destination
+        id: simulator
+        shell: bash
+        run: |
+          DESTINATION=$(xcrun simctl list devices available | awk -F'[()]' '/iPhone/ { print "platform=iOS Simulator,id=" $2; exit }')
+          if [ -z "$DESTINATION" ]; then
+            echo "No available iPhone simulator found"
+            exit 1
+          fi
+          echo "destination=$DESTINATION" >> "$GITHUB_OUTPUT"
+
+      - name: Run tests
+        run: |
+          xcodebuild \
+            -project TypeWrong.xcodeproj \
+            -scheme TypeWrongApp \
+            -destination '${{ steps.simulator.outputs.destination }}' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            test
