@@ -1,17 +1,22 @@
 # TypeWrong
 
-Custom iPhone keyboard that shows a Russian JCUKEN layout but types English characters by physical key position.
+Custom iPhone keyboard that shows a Russian JCUKEN layout but types English
+characters by physical key position.
 
 `привет` becomes `ghbdtn`.  
 `пароль` becomes `gfhjkm`.
 
 ## What It Is
 
-TypeWrong is an iOS app with a custom keyboard extension for users who think in Russian keyboard positions but need English output.
+TypeWrong is an iOS app with a custom keyboard extension for users who
+think in Russian keyboard positions but need English output.
 
-The on-screen keycaps follow the standard Russian computer layout. The inserted text follows the matching US QWERTY positions instead of phonetic transliteration.
+The on-screen keycaps follow the standard Russian computer layout. The
+inserted text follows the matching US QWERTY positions instead of phonetic
+transliteration.
 
-This is positional remapping, not transliteration by pronunciation or dictionary rules.
+This is positional remapping, not transliteration by pronunciation or
+dictionary rules.
 
 ## How It Works
 
@@ -107,11 +112,14 @@ make test
 make test TEST_DESTINATION='platform=iOS Simulator,name=iPhone 15 Pro'
 ```
 
-Note: `make build` uses `generic/platform=iOS Simulator`, but `make test` needs a concrete simulator destination because `xcodebuild test` cannot run against a generic simulator target.
+Note: `make build` uses `generic/platform=iOS Simulator`, but `make test`
+needs a concrete simulator destination because `xcodebuild test` cannot run
+against a generic simulator target.
 
 ## Install In Simulator
 
-Build first, then install and launch the app in the currently booted simulator:
+Build first, then install and launch the app in the currently booted
+simulator:
 
 ```bash
 make build
@@ -139,7 +147,8 @@ After installing the app on a device or simulator:
 
 - iOS custom keyboards do not appear in every input context.
 - Secure text fields may force the system keyboard.
-- Some system surfaces apply their own keyboard appearance and sizing behavior.
+- Some system surfaces apply their own keyboard appearance and sizing
+  behavior.
 
 ## Testing
 
@@ -167,14 +176,17 @@ The workflow:
 
 - `project.yml` — XcodeGen project spec
 - `Makefile` — local build, test, and simulator commands
-- `TypeWrongKeyboard/KeyboardLayout.swift` — positional Russian-to-English mapping
-- `TypeWrongKeyboard/KeyboardViewController.swift` — keyboard extension UI and behavior
+- `TypeWrongKeyboard/KeyboardLayout.swift` — positional Russian-to-English
+  mapping
+- `TypeWrongKeyboard/KeyboardViewController.swift` — keyboard extension UI
+  and behavior
 - `TypeWrongTests/KeyboardLayoutTests.swift` — mapping regression tests
 - `AGENTS.md` — task notes and implementation scope
 
 ## Troubleshooting
 
-If Xcode cannot find a simulator destination, install the required iOS platform and simulator runtime in:
+If Xcode cannot find a simulator destination, install the required iOS
+platform and simulator runtime in:
 
 - `Xcode -> Settings -> Components`
 
